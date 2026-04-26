@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, getDocs, where } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
-import { UserProfile, HealthLog } from '../types';
+import { collection, query, onSnapshot, getDocs, where, doc } from 'firebase/firestore';
+import { db, auth, handleFirestoreError } from '../lib/firebase';
+import { UserProfile, HealthLog, OperationType } from '../types';
 import { motion } from 'motion/react';
 import { 
   Users, 
@@ -48,7 +48,7 @@ export default function AdminPanel({ profile }: AdminPanelProps) {
       setUsers(u);
       setLoading(false);
     }, (err) => {
-      console.error(err);
+      handleFirestoreError(err, OperationType.LIST, 'users');
       setError("Erreur de chargement des utilisateurs. Vérifiez vos permissions.");
       setLoading(false);
     });
@@ -65,7 +65,7 @@ export default function AdminPanel({ profile }: AdminPanelProps) {
       });
       setUserLogs(l.sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds));
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.LIST, 'logs');
       setError("Impossible de charger les logs du patient.");
     }
   };

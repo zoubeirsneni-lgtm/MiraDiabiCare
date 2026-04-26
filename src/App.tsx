@@ -62,19 +62,32 @@ export default function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
+    let unsubProfile: (() => void) | null = null;
+    let unsubLogs: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      // Clear previous listeners if any
+      if (unsubProfile) unsubProfile();
+      if (unsubLogs) unsubLogs();
+      
       setUser(u);
+      
       if (u) {
         // Listen to profile
         const profileRef = doc(db, 'users', u.uid);
-        const unsubProfile = onSnapshot(profileRef, (docSnap) => {
+        unsubProfile = onSnapshot(profileRef, (docSnap) => {
           if (docSnap.exists()) {
             setProfile(docSnap.data() as UserProfile);
           } else {
             setProfile(null);
           }
           setLoading(false);
-        }, (error) => handleFirestoreError(error, OperationType.GET, `users/${u.uid}`));
+        }, (error) => {
+          // Only handle error if we are still signed in as this user
+          if (auth.currentUser?.uid === u.uid) {
+            handleFirestoreError(error, OperationType.GET, `users/${u.uid}`);
+          }
+        });
 
         // Listen to logs
         const logsQuery = query(
@@ -83,16 +96,15 @@ export default function App() {
           orderBy('timestamp', 'desc'),
           limit(100)
         );
-        const unsubLogs = onSnapshot(logsQuery, (querySnap) => {
+        unsubLogs = onSnapshot(logsQuery, (querySnap) => {
           const l: HealthLog[] = [];
           querySnap.forEach(d => l.push({ id: d.id, ...d.data() } as HealthLog));
           setLogs(l);
-        }, (error) => handleFirestoreError(error, OperationType.LIST, 'logs'));
-
-        return () => {
-          unsubProfile();
-          unsubLogs();
-        };
+        }, (error) => {
+          if (auth.currentUser?.uid === u.uid) {
+            handleFirestoreError(error, OperationType.LIST, 'logs');
+          }
+        });
       } else {
         setProfile(null);
         setLogs([]);
@@ -100,7 +112,11 @@ export default function App() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubProfile) unsubProfile();
+      if (unsubLogs) unsubLogs();
+    };
   }, []);
 
   if (loading) {
