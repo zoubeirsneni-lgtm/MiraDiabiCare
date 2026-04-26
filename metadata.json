@@ -1,0 +1,6 @@
+{
+  "name": "MiraDiabiCare",
+  "description": "Écosystème Intelligent de Gestion du Diabète localisé pour la Tunisie, avec suivi glycémique, analyse de repas IA et assistant Mira.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}

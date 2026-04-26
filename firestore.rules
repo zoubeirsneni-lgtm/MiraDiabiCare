@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Primitives & Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // User Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'diabetesType', 'targetMin', 'targetMax']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.diabetesType in ['type1', 'type2', 'gestational'] &&
+             data.targetMin is number && data.targetMin >= 40 && data.targetMin <= 100 &&
+             data.targetMax is number && data.targetMax >= 100 && data.targetMax <= 400;
+    }
+
+    // Log Validation
+    function isValidLog(data) {
+      return data.keys().hasAll(['userId', 'type', 'timestamp']) &&
+             data.userId == request.auth.uid &&
+             data.type in ['glucose', 'medication', 'activity', 'food', 'weight'] &&
+             data.timestamp == request.time &&
+             (data.get('value', 0) is number) &&
+             (data.get('notes', '').size() <= 1000);
+    }
+
+    // 4. Collections
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && !incoming().get('isAdmin', false);
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'diabetesType', 'age', 'targetMin', 'targetMax', 'insulinToCarbRatio', 'insulinSensitivityFactor']) ||
+                    isAdmin();
+    }
+
+    match /logs/{logId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidLog(incoming()) && isValidId(logId);
+      allow update: if isOwner(existing().userId) && isValidLog(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['value', 'notes', 'mealType', 'timing', 'medicationName']) ||
+                    isAdmin();
+      allow delete: if isOwner(existing().userId) || isAdmin();
+    }
+
+    // Admin detection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via Google Cloud Console
+    }
+  }
+}

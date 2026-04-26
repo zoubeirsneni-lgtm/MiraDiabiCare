@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user medical and preference data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name" },
+        "diabetesType": { "type": "string", "enum": ["type1", "type2", "gestational"], "description": "Type of diabetes" },
+        "age": { "type": "number", "description": "User age" },
+        "targetMin": { "type": "number", "description": "Lower blood glucose target (mg/dL)" },
+        "targetMax": { "type": "number", "description": "Upper blood glucose target (mg/dL)" },
+        "insulinToCarbRatio": { "type": "number", "description": "Grams of carbs covered by 1 unit of insulin" },
+        "insulinSensitivityFactor": { "type": "number", "description": "Drop in mg/dL per 1 unit of insulin" },
+        "isAdmin": { "type": "boolean", "description": "Admin privileges" }
+      },
+      "required": ["name", "diabetesType", "targetMin", "targetMax"]
+    },
+    "Log": {
+      "title": "Health Log",
+      "description": "A single entry for glucose, medication, food, or activity.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Reference to user" },
+        "type": { "type": "string", "enum": ["glucose", "medication", "activity", "food", "weight"], "description": "Entry type" },
+        "value": { "type": "number", "description": "Primary numerical value (e.g. mg/dL, units, grams)" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Time of entry" },
+        "notes": { "type": "string", "description": "Optional details" },
+        "mealType": { "type": "string", "enum": ["breakfast", "lunch", "dinner", "snack", "other"], "description": "Associated meal" },
+        "timing": { "type": "string", "enum": ["before", "after", "none"], "description": "Before or after meal" },
+        "medicationName": { "type": "string", "description": "Name of insulin or pill" }
+      },
+      "required": ["userId", "type", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/logs/{logId}": {
+      "schema": "Log",
+      "description": "Flat collection of logs for easier querying with filters"
+    },
+    "/admins/{adminId}": {
+      "schema": "object",
+      "description": "Admin whitelist"
+    }
+  }
+}
