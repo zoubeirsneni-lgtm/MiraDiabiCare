@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, HealthLog } from '../types';
 import { askMira } from '../services/geminiService';
+import { translations } from '../lib/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Send, 
@@ -20,6 +21,7 @@ import InsulinCalculator from './InsulinCalculator';
 interface MiraChatProps {
   profile: UserProfile;
   logs: HealthLog[];
+  lang: 'fr' | 'ar';
 }
 
 interface Message {
@@ -29,12 +31,14 @@ interface Message {
   timestamp: Date;
 }
 
-export default function MiraChat({ profile, logs }: MiraChatProps) {
+export default function MiraChat({ profile, logs, lang }: MiraChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'mira',
-      content: `Asslema ${profile.name} ! Je suis Mira, ton assistante intelligente. Comment puis-je t'aider aujourd'hui ? Tu peux me poser des questions sur tes récentes glycémies ou sur tes repas tunisiens.`,
+      content: lang === 'ar' 
+        ? `عسلامة ${profile.name}! أنا ميرا، مساعدتك الذكية. كيفاش نجم نعاونك اليوم؟ تنجم تسألني على نسبة السكر والا على الماكلة التونسية.`
+        : `Asslema ${profile.name} ! Je suis Mira, ton assistante intelligente. Comment puis-je t'aider aujourd'hui ? Tu peux me poser des questions sur tes récentes glycémies ou sur tes repas tunisiens.`,
       timestamp: new Date()
     }
   ]);
@@ -176,7 +180,7 @@ export default function MiraChat({ profile, logs }: MiraChatProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Pose ta question à Mira..."
+              placeholder={translations[lang].ask_mira}
               className="w-full pl-6 pr-16 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-medical-blue outline-none transition-all group-hover:border-gray-200 font-medium"
             />
             <button

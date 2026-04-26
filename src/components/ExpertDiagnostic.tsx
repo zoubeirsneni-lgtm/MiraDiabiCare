@@ -18,9 +18,10 @@ interface ExpertDiagnosticProps {
   profile: UserProfile;
   logs: HealthLog[];
   onNavigate: (tab: any) => void;
+  lang: 'fr' | 'ar';
 }
 
-export default function ExpertDiagnostic({ profile, logs, onNavigate }: ExpertDiagnosticProps) {
+export default function ExpertDiagnostic({ profile, logs, onNavigate, lang }: ExpertDiagnosticProps) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
 

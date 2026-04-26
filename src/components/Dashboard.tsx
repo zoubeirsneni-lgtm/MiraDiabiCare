@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { UserProfile, HealthLog } from '../types';
+import { translations } from '../lib/translations';
 import { 
   LineChart, 
   Line, 
@@ -38,9 +39,11 @@ interface DashboardProps {
   profile: UserProfile;
   logs: HealthLog[];
   onNavigate: (tab: any) => void;
+  lang: 'fr' | 'ar';
 }
 
-export default function Dashboard({ profile, logs, onNavigate }: DashboardProps) {
+export default function Dashboard({ profile, logs, onNavigate, lang }: DashboardProps) {
+  const t = (key: string) => translations[lang][key] || key;
   const generatePDF = () => {
     const doc = new jsPDF();
     
@@ -156,7 +159,7 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
           className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 flex flex-col justify-between"
         >
           <div className="flex justify-between items-start mb-4">
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Dernière Glycémie</span>
+            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t('latest_glucose')}</span>
             <div className={`p-2 rounded-xl bg-opacity-10 ${latestGlucose ? getStatusColor(latestGlucose.value).replace('text', 'bg') : 'bg-gray-100'}`}>
               <Activity className={`w-5 h-5 ${latestGlucose ? getStatusColor(latestGlucose.value) : 'text-gray-400'}`} />
             </div>
@@ -180,7 +183,7 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
           className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 bg-gradient-to-br from-emerald-50/50 to-transparent"
         >
           <div className="flex justify-between items-start mb-4">
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Temps dans la cible</span>
+            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t('time_in_range')}</span>
             <Target className="w-5 h-5 text-emerald-500" />
           </div>
           <h3 className="text-5xl font-bold text-gray-900 tracking-tight">
@@ -200,17 +203,23 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50"
+          className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 flex flex-col justify-between"
         >
           <div className="flex justify-between items-start mb-4">
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Moyenne</span>
-            <Zap className="w-5 h-5 text-tunisian-amber" />
+            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t('stability')}</span>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+              (stats?.timeInRange || 0) > 80 ? 'bg-emerald-100 text-emerald-600' : 
+              (stats?.timeInRange || 0) > 50 ? 'bg-amber-100 text-amber-600' : 
+              'bg-rose-100 text-rose-600'
+            }`}>
+              {(stats?.timeInRange || 0) > 80 ? t('excellent') : (stats?.timeInRange || 0) > 50 ? t('acceptable') : t('critical')}
+            </div>
           </div>
           <h3 className="text-5xl font-bold text-gray-900 tracking-tight">
             {stats?.avg || '--'}
             <span className="text-xl ml-2 font-medium text-gray-400">mg/dL</span>
           </h3>
-          <p className="text-sm text-amber-600 mt-2 italic">Basé sur les derniers logs.</p>
+          <p className="text-sm text-gray-400 mt-2">Moyenne glycémique</p>
         </motion.div>
       </div>
 

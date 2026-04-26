@@ -1,5 +1,16 @@
 export type DiabetesType = 'type1' | 'type2' | 'gestational';
 
+export interface Medication {
+  id: string;
+  userId: string;
+  name: string;
+  type: 'insulin-fast' | 'insulin-slow' | 'pill' | 'other';
+  dosage: string;
+  stock: number;
+  minStock: number;
+  createdAt?: any;
+}
+
 export interface UserProfile {
   name: string;
   diabetesType: DiabetesType;
@@ -9,6 +20,8 @@ export interface UserProfile {
   insulinToCarbRatio?: number;
   insulinSensitivityFactor?: number;
   isAdmin?: boolean;
+  dailyCarbGoal?: number;
+  dailyStepGoal?: number;
 }
 
 export type LogType = 'glucose' | 'medication' | 'activity' | 'food' | 'weight';

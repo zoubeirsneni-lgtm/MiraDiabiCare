@@ -22,9 +22,10 @@ import {
 
 interface MealAnalyzerProps {
   onNavigate: (tab: any) => void;
+  lang: 'fr' | 'ar';
 }
 
-export default function MealAnalyzer({ onNavigate }: MealAnalyzerProps) {
+export default function MealAnalyzer({ onNavigate, lang }: MealAnalyzerProps) {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);

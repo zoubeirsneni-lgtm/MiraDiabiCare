@@ -25,9 +25,11 @@ import {
   Stethoscope,
   Pill,
   Sun,
-  Moon
+  Moon,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { translations } from './lib/translations';
 import Dashboard from './components/Dashboard';
 import LogEntry from './components/LogEntry';
 import MiraChat from './components/MiraChat';
@@ -46,10 +48,22 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [lang, setLang] = useState<'fr' | 'ar'>(() => (localStorage.getItem('lang') as any) || 'fr');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' || 
            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
+
+  const t = (key: string) => translations[lang][key] || key;
+
+  useEffect(() => {
+    localStorage.setItem('lang', lang);
+    if (lang === 'ar') {
+      document.body.dir = 'rtl';
+    } else {
+      document.body.dir = 'ltr';
+    }
+  }, [lang]);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -167,25 +181,25 @@ export default function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} />;
-      case 'logs': return <LogEntry user={user} profile={profile} />;
-      case 'mira': return <MiraChat profile={profile} logs={logs} />;
-      case 'diagnostic': return <ExpertDiagnostic profile={profile} logs={logs} onNavigate={setActiveTab} />;
-      case 'meal-analyzer': return <MealAnalyzer onNavigate={setActiveTab} />;
-      case 'medications': return <MedicationManager />;
+      case 'dashboard': return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
+      case 'logs': return <LogEntry user={user} profile={profile} lang={lang} />;
+      case 'mira': return <MiraChat profile={profile} logs={logs} lang={lang} />;
+      case 'diagnostic': return <ExpertDiagnostic profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
+      case 'meal-analyzer': return <MealAnalyzer onNavigate={setActiveTab} lang={lang} />;
+      case 'medications': return <MedicationManager lang={lang} />;
       case 'admin': return <AdminPanel profile={profile} />;
-      default: return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} />;
+      default: return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
     }
   };
 
   const menuItems = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: PieChart },
-    { id: 'logs', label: 'Ajouter une mesure', icon: Plus },
-    { id: 'mira', label: 'Discuter avec Mira', icon: MessageSquare },
-    { id: 'diagnostic', label: 'Diagnostic Expert', icon: Stethoscope },
-    { id: 'medications', label: 'Médicaments', icon: Pill },
-    { id: 'meal-analyzer', label: 'Analyseur de repas', icon: Utensils },
-    ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' ? [{ id: 'admin', label: 'Administration', icon: Settings }] : []),
+    { id: 'dashboard', label: t('dashboard'), icon: PieChart },
+    { id: 'logs', label: t('add_log'), icon: Plus },
+    { id: 'mira', label: t('mira'), icon: MessageSquare },
+    { id: 'diagnostic', label: t('expert'), icon: Stethoscope },
+    { id: 'medications', label: t('meds'), icon: Pill },
+    { id: 'meal-analyzer', label: t('food'), icon: Utensils },
+    ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' ? [{ id: 'admin', label: t('admin'), icon: Settings }] : []),
   ];
 
   return (
@@ -238,19 +252,29 @@ export default function App() {
           </nav>
 
           <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:text-medical-blue transition-all"
-              title="Changer de thème"
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:text-medical-blue transition-all"
+                title="Changer de thème"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={() => setLang(lang === 'fr' ? 'ar' : 'fr')}
+                className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:text-emerald-500 transition-all flex items-center gap-2"
+                title="Changer de langue"
+              >
+                <Globe className="w-5 h-5" />
+                <span className="text-[10px] font-bold uppercase">{lang === 'fr' ? 'AR' : 'FR'}</span>
+              </button>
+            </div>
             <button
               onClick={logOut}
               className="flex items-center gap-4 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium">Déconnexion</span>
+              <span className="font-medium">{t('logout')}</span>
             </button>
           </div>
         </div>

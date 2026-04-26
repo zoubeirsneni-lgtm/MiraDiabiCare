@@ -19,9 +19,10 @@ import {
 interface LogEntryProps {
   user: User;
   profile: UserProfile;
+  lang: 'fr' | 'ar';
 }
 
-export default function LogEntry({ user, profile }: LogEntryProps) {
+export default function LogEntry({ user, profile, lang }: LogEntryProps) {
   const [type, setType] = useState<LogType>('glucose');
   const [value, setValue] = useState('');
   const [notes, setNotes] = useState('');

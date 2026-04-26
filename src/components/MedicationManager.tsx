@@ -25,7 +25,11 @@ interface Medication {
   type: 'insulin-fast' | 'insulin-slow' | 'pill' | 'other';
 }
 
-export default function MedicationManager() {
+interface MedicationManagerProps {
+  lang: 'fr' | 'ar';
+}
+
+export default function MedicationManager({ lang }: MedicationManagerProps) {
   const [meds, setMeds] = useState<Medication[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
