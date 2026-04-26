@@ -30,12 +30,14 @@ export default function LogEntry({ user, profile }: LogEntryProps) {
   const [medicationName, setMedicationName] = useState('');
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value) return;
     
     setSaving(true);
+    setError(null);
     try {
       await addDoc(collection(db, 'logs'), {
         userId: user.uid,
@@ -51,9 +53,18 @@ export default function LogEntry({ user, profile }: LogEntryProps) {
       setSuccess(true);
       setValue('');
       setNotes('');
+      setMedicationName('');
       setTimeout(() => setSuccess(false), 2000);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'logs');
+    } catch (err) {
+      console.error('Submit error:', err);
+      // Try to parse the JSON error from our handler if possible
+      try {
+        const parsed = JSON.parse(err instanceof Error ? err.message : '');
+        setError(parsed.error || 'Erreur lors de l\'enregistrement');
+      } catch {
+        setError('Une erreur est survenue lors de l\'enregistrement.');
+      }
+      handleFirestoreError(err, OperationType.CREATE, 'logs');
     } finally {
       setSaving(false);
     }
@@ -181,13 +192,28 @@ export default function LogEntry({ user, profile }: LogEntryProps) {
           />
         </div>
 
-        <div className="pt-4">
+        <div className="pt-4 space-y-4">
+          <AnimatePresence>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-medium flex items-center gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <button
             type="submit"
             disabled={saving}
             className={`
               w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg shadow-xl transition-all
               ${success ? 'bg-emerald-500 text-white' : 'bg-gray-900 text-white hover:scale-[1.01] hover:bg-black'}
+              ${saving ? 'opacity-70 cursor-not-allowed shadow-none' : ''}
             `}
           >
             {saving ? (

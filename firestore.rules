@@ -45,9 +45,9 @@ service cloud.firestore {
       return data.keys().hasAll(['userId', 'type', 'timestamp']) &&
              data.userId == request.auth.uid &&
              data.type in ['glucose', 'medication', 'activity', 'food', 'weight'] &&
-             data.timestamp == request.time &&
-             (data.get('value', 0) is number) &&
-             (data.get('notes', '').size() <= 1000);
+             (data.timestamp == request.time || data.timestamp == null) &&
+             (data.get('value', 0) is number || data.get('value', 0) == null) &&
+             (data.get('notes', '').size() <= 2000);
     }
 
     // 4. Collections
@@ -63,8 +63,8 @@ service cloud.firestore {
     match /logs/{logId} {
       allow list: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && isValidLog(incoming()) && isValidId(logId);
-      allow update: if isOwner(existing().userId) && isValidLog(incoming()) &&
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidId(logId);
+      allow update: if isOwner(existing().userId) && 
                     incoming().diff(existing()).affectedKeys().hasOnly(['value', 'notes', 'mealType', 'timing', 'medicationName']) ||
                     isAdmin();
       allow delete: if isOwner(existing().userId) || isAdmin();
