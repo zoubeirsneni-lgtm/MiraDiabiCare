@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { analyzeTunisianMeal } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
+import TunisianFoodGuide from './TunisianFoodGuide';
 import { 
   Utensils, 
   Search, 
@@ -15,7 +16,8 @@ import {
   Upload,
   X,
   ImageIcon,
-  FileText
+  FileText,
+  BookOpen
 } from 'lucide-react';
 
 interface MealAnalyzerProps {
@@ -27,6 +29,7 @@ export default function MealAnalyzer({ onNavigate }: MealAnalyzerProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,14 +68,28 @@ export default function MealAnalyzer({ onNavigate }: MealAnalyzerProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-widest">
-          <Utensils className="w-3 h-3" />
-          Nutrition Tunisienne
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-widest">
+            <Utensils className="w-3 h-3" />
+            Nutrition Tunisienne
+          </div>
+          <h2 className="text-4xl font-serif font-bold text-gray-900">Analyseur de Repas</h2>
+          <p className="text-gray-500 font-serif italic max-w-lg">Découvre l'impact glycémique de tes plats préférés via photo ou description.</p>
         </div>
-        <h2 className="text-4xl font-serif font-bold text-gray-900">Analyseur de Repas</h2>
-        <p className="text-gray-500 font-serif italic max-w-lg">Découvre l'impact glycémique de tes plats préférés via photo ou description.</p>
+        
+        <button 
+          onClick={() => setShowGuide(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-white border border-emerald-100 text-emerald-700 rounded-2xl text-sm font-bold shadow-sm hover:border-emerald-500 transition-all"
+        >
+          <BookOpen className="w-4 h-4" />
+          Consulter le guide local
+        </button>
       </div>
+
+      <AnimatePresence>
+        {showGuide && <TunisianFoodGuide onClose={() => setShowGuide(false)} />}
+      </AnimatePresence>
 
       <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-50 space-y-8">
         <form onSubmit={handleAnalyze} className="space-y-6">

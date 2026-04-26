@@ -45,6 +45,10 @@
     "/admins/{adminId}": {
       "schema": "object",
       "description": "Admin whitelist"
+    },
+    "/medications/{medId}": {
+      "schema": "object",
+      "description": "User medications and stock tracking"
     }
   }
 }

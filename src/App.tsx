@@ -22,7 +22,10 @@ import {
   ChevronRight,
   TrendingDown,
   TrendingUp,
-  Stethoscope
+  Stethoscope,
+  Pill,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Dashboard from './components/Dashboard';
@@ -32,8 +35,9 @@ import ExpertDiagnostic from './components/ExpertDiagnostic';
 import MealAnalyzer from './components/MealAnalyzer';
 import Onboarding from './components/Onboarding';
 import AdminPanel from './components/AdminPanel';
+import MedicationManager from './components/MedicationManager';
 
-type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin';
+type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin' | 'medications';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -42,6 +46,20 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -138,6 +156,7 @@ export default function App() {
       case 'mira': return <MiraChat profile={profile} logs={logs} />;
       case 'diagnostic': return <ExpertDiagnostic profile={profile} logs={logs} onNavigate={setActiveTab} />;
       case 'meal-analyzer': return <MealAnalyzer onNavigate={setActiveTab} />;
+      case 'medications': return <MedicationManager />;
       case 'admin': return <AdminPanel profile={profile} />;
       default: return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} />;
     }
@@ -146,8 +165,9 @@ export default function App() {
   const menuItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: PieChart },
     { id: 'logs', label: 'Ajouter une mesure', icon: Plus },
-    { id: 'mira', label: 'Mira AI', icon: MessageSquare },
+    { id: 'mira', label: 'Discuter avec Mira', icon: MessageSquare },
     { id: 'diagnostic', label: 'Diagnostic Expert', icon: Stethoscope },
+    { id: 'medications', label: 'Médicaments', icon: Pill },
     { id: 'meal-analyzer', label: 'Analyseur de repas', icon: Utensils },
     ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' ? [{ id: 'admin', label: 'Administration', icon: Settings }] : []),
   ];
@@ -201,10 +221,17 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="pt-6 border-t border-gray-100">
+          <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:text-medical-blue transition-all"
+              title="Changer de thème"
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button
               onClick={logOut}
-              className="w-full flex items-center gap-4 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors"
+              className="flex items-center gap-4 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span className="font-medium">Déconnexion</span>

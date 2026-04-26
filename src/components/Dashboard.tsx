@@ -10,7 +10,10 @@ import {
   ResponsiveContainer, 
   ReferenceArea,
   AreaChart,
-  Area
+  Area,
+  Bar,
+  ComposedChart,
+  Legend
 } from 'recharts';
 import { motion } from 'motion/react';
 import { 
@@ -24,10 +27,12 @@ import {
   Target,
   Check,
   Brain,
-  FileDown
+  FileDown,
+  Calendar
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import GlycemiaCalendar from './GlycemiaCalendar';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -72,16 +77,53 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
 
     doc.save(`MiraDiabiCare_Rapport_${profile.name}.pdf`);
   };
+
+  const generateCSV = () => {
+    const translateLog = (t: string) => {
+      const m: any = { glucose: 'Glycémie', food: 'Repas', activity: 'Sport', medication: 'Médicament', weight: 'Poids' };
+      return m[t] || t;
+    };
+
+    const headers = ['Date', 'Heure', 'Type', 'Valeur', 'Notes'];
+    const csvRows = logs.map(l => {
+      const d = new Date(l.timestamp?.seconds * 1000);
+      return [
+        d.toLocaleDateString(),
+        d.toLocaleTimeString(),
+        translateLog(l.type),
+        l.value,
+        `"${(l.notes || '').replace(/"/g, '""')}"`
+      ].map(String).join(',');
+    });
+
+    const csvContent = "\ufeff" + [headers.join(','), ...csvRows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `MiraDiabiCare_Logs_${profile.name}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const chartData = useMemo(() => {
-    return [...logs]
-      .filter(l => l.type === 'glucose')
-      .slice(0, 30) // Last 30 glucose readings
-      .reverse()
-      .map(l => ({
-        time: new Date(l.timestamp?.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        fullTime: new Date(l.timestamp?.seconds * 1000).toLocaleString(),
-        value: l.value,
-      }));
+    // Group logs by timestamp (rounded to minute)
+    const groupedData: { [key: string]: any } = {};
+    
+    [...logs].slice(0, 50).forEach(l => {
+      const date = new Date(l.timestamp?.seconds * 1000);
+      const key = date.toLocaleString();
+      const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      if (!groupedData[key]) {
+        groupedData[key] = { key, time, glucose: null, carbs: 0, insulin: 0 };
+      }
+      
+      if (l.type === 'glucose') groupedData[key].glucose = l.value;
+      if (l.type === 'food') groupedData[key].carbs = l.value;
+      if (l.type === 'medication') groupedData[key].insulin = l.value;
+    });
+
+    return Object.values(groupedData).sort((a, b) => a.key.localeCompare(b.key));
   }, [logs]);
 
   const latestGlucose = logs.find(l => l.type === 'glucose');
@@ -184,13 +226,22 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
             <p className="text-gray-500 text-sm">Tes readings récents</p>
           </div>
           <div className="flex flex-col items-end gap-4">
-            <button 
-              onClick={generatePDF}
-              className="flex items-center gap-2 px-4 py-2 bg-medical-blue text-white rounded-xl text-sm font-bold shadow-lg shadow-medical-blue/20 hover:scale-105 transition-all"
-            >
-              <FileDown className="w-4 h-4" />
-              Télécharger Rapport PDF
-            </button>
+            <div className="flex gap-4">
+              <button 
+                onClick={generateCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
+              >
+                <FileDown className="w-4 h-4" />
+                CSV
+              </button>
+              <button 
+                onClick={generatePDF}
+                className="flex items-center gap-2 px-4 py-2 bg-medical-blue text-white rounded-xl text-sm font-bold shadow-lg shadow-medical-blue/20 hover:scale-105 transition-all"
+              >
+                <FileDown className="w-4 h-4" />
+                PDF
+              </button>
+            </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-rose-400" />
@@ -208,11 +259,11 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
           </div>
         </div>
 
-        <div className="h-[400px] w-full">
+        <div className="h-[450px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
+            <ComposedChart data={chartData}>
               <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorGlucose" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#2B6CB0" stopOpacity={0.1}/>
                   <stop offset="95%" stopColor="#2B6CB0" stopOpacity={0}/>
                 </linearGradient>
@@ -222,14 +273,23 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
                 dataKey="time" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                tick={{ fill: '#9CA3AF', fontSize: 10 }}
                 dy={10}
               />
               <YAxis 
+                yAxisId="left"
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                tick={{ fill: '#9CA3AF', fontSize: 10 }}
                 domain={[40, 400]}
+              />
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#CBD5E0', fontSize: 10 }}
+                domain={[0, 150]}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -239,23 +299,34 @@ export default function Dashboard({ profile, logs, onNavigate }: DashboardProps)
                   padding: '12px'
                 }}
               />
-              <ReferenceArea y1={0} y2={profile.targetMin} fill="#FDE68A" fillOpacity={0.1} />
-              <ReferenceArea y1={profile.targetMin} y2={profile.targetMax} fill="#A7F3D0" fillOpacity={0.1} />
-              <ReferenceArea y1={profile.targetMax} y2={450} fill="#FECDD3" fillOpacity={0.1} />
+              <Legend verticalAlign="top" height={36}/>
+              <ReferenceArea yAxisId="left" y1={0} y2={profile.targetMin} fill="#FDE68A" fillOpacity={0.05} />
+              <ReferenceArea yAxisId="left" y1={profile.targetMin} y2={profile.targetMax} fill="#A7F3D0" fillOpacity={0.05} />
+              <ReferenceArea yAxisId="left" y1={profile.targetMax} y2={450} fill="#FECDD3" fillOpacity={0.05} />
+              
+              <Bar yAxisId="right" dataKey="carbs" name="Glucides (g)" fill="#ED8936" radius={[4, 4, 0, 0]} barSize={20} opacity={0.6} />
+              <Bar yAxisId="right" dataKey="insulin" name="Insuline (U)" fill="#805AD5" radius={[4, 4, 0, 0]} barSize={10} opacity={0.6} />
+              
               <Area 
+                yAxisId="left"
                 type="monotone" 
-                dataKey="value" 
+                dataKey="glucose" 
+                name="Glycémie"
                 stroke="#2B6CB0" 
                 strokeWidth={3}
                 fillOpacity={1} 
-                fill="url(#colorValue)" 
+                fill="url(#colorGlucose)" 
                 dot={{ r: 4, fill: '#2B6CB0', strokeWidth: 2, stroke: '#fff' }}
                 activeDot={{ r: 6, strokeWidth: 0 }}
+                connectNulls
               />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </motion.div>
+
+      {/* Monthly Stability Heatmap */}
+      <GlycemiaCalendar logs={logs} profile={profile} />
 
       {/* AI Insights & Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

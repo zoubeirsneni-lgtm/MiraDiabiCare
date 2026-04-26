@@ -35,6 +35,7 @@ service cloud.firestore {
 
     // 4. Collections
     match /users/{userId} {
+      allow list: if isAdmin();
       allow get: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUser(incoming()) && !incoming().get('isAdmin', false);
       allow update: if isOwner(userId) && isValidUser(incoming()) && 
@@ -43,7 +44,7 @@ service cloud.firestore {
     }
 
     match /logs/{logId} {
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && isValidLog(incoming()) && isValidId(logId);
       allow update: if isOwner(existing().userId) && isValidLog(incoming()) &&
@@ -56,6 +57,14 @@ service cloud.firestore {
     match /admins/{adminId} {
       allow read: if isSignedIn();
       allow write: if false; // Only manageable via Google Cloud Console
+    }
+
+    match /medications/{medId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidId(medId);
+      allow update: if isOwner(existing().userId) && incoming().userId == request.auth.uid;
+      allow delete: if isOwner(existing().userId);
     }
   }
 }
