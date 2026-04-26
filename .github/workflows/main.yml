@@ -1,0 +1,24 @@
+name: Sync to Compte B
+
+on:
+  push:
+    branches:
+      - main  # Change "main" par "master" si ta branche principale s'appelle master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du compte A
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Copie vers le compte B
+        uses: andymckay/copycat-action@master
+        env:
+          API_KEY_GITHUB: ${{ secrets.TOKEN_COMPTE_B }}
+          DESTINATION_GITHUB_USERNAME: snenizoubeir-sketch
+          DESTINATION_REPOSITORY_NAME: miradiabicare
+        with:
+          dst_branch: main # Change "main" par "master" si nécessaire
