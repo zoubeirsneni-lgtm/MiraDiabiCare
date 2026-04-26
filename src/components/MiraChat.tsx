@@ -190,17 +190,31 @@ export default function MiraChat({ profile, logs }: MiraChatProps) {
         </div>
       </div>
 
-      {/* Tools Sidebar (Conditional) */}
+      {/* Tools Sidebar / Modal */}
       <AnimatePresence>
         {showTools && (
-          <motion.div 
-            initial={{ opacity: 0, x: 20, width: 0 }}
-            animate={{ opacity: 1, x: 0, width: '380px' }}
-            exit={{ opacity: 0, x: 20, width: 0 }}
-            className="hidden lg:block overflow-hidden"
-          >
-            <InsulinCalculator profile={profile} />
-          </motion.div>
+          <>
+            {/* Mobile Overlay Background */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowTools(false)}
+              className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 lg:hidden"
+            />
+            
+            {/* Sidebar Content */}
+            <motion.div 
+              initial={{ opacity: 0, x: 100, width: 0 }}
+              animate={{ opacity: 1, x: 0, width: window.innerWidth > 1024 ? '380px' : '90%' }}
+              exit={{ opacity: 0, x: 100, width: 0 }}
+              className="fixed lg:relative right-4 lg:right-0 top-20 lg:top-0 bottom-4 lg:bottom-0 z-50 lg:z-0 overflow-hidden"
+            >
+              <div className="h-full shadow-2xl lg:shadow-none">
+                <InsulinCalculator profile={profile} />
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
