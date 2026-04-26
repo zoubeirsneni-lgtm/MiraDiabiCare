@@ -9,7 +9,12 @@ service cloud.firestore {
     // 3. Primitives & Helpers
     function isSignedIn() { return request.auth != null; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
-    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isAdmin() { 
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) || 
+        (request.auth.token.email == 'zoubeirsneni@gmail.com' && request.auth.token.email_verified == true)
+      ); 
+    }
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
     function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
@@ -21,6 +26,18 @@ service cloud.firestore {
              data.diabetesType in ['type1', 'type2', 'gestational'] &&
              data.targetMin is number && data.targetMin >= 40 && data.targetMin <= 100 &&
              data.targetMax is number && data.targetMax >= 100 && data.targetMax <= 400;
+    }
+
+    // Medication Validation
+    function isValidMedication(data) {
+      return data.keys().hasAll(['userId', 'name', 'dosage', 'stock', 'minStock', 'type']) &&
+             data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.dosage is string && data.dosage.size() <= 200 &&
+             data.stock is number && data.stock >= 0 &&
+             data.minStock is number && data.minStock >= 0 &&
+             data.type in ['insulin-fast', 'insulin-slow', 'pill', 'other'] &&
+             (data.get('createdAt', request.time) == request.time);
     }
 
     // Log Validation
@@ -60,11 +77,12 @@ service cloud.firestore {
     }
 
     match /medications/{medId} {
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidId(medId);
-      allow update: if isOwner(existing().userId) && incoming().userId == request.auth.uid;
-      allow delete: if isOwner(existing().userId);
+      allow create: if isSignedIn() && isValidMedication(incoming()) && isValidId(medId);
+      allow update: if isOwner(existing().userId) && isValidMedication(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['stock', 'minStock', 'name', 'dosage', 'type']);
+      allow delete: if isOwner(existing().userId) || isAdmin();
     }
   }
 }
