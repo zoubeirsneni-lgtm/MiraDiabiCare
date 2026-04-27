@@ -15,6 +15,7 @@ export interface UserProfile {
   name: string;
   diabetesType: DiabetesType;
   age?: number;
+  weight?: number;
   targetMin: number;
   targetMax: number;
   insulinToCarbRatio?: number;

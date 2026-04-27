@@ -38,8 +38,9 @@ import MealAnalyzer from './components/MealAnalyzer';
 import Onboarding from './components/Onboarding';
 import AdminPanel from './components/AdminPanel';
 import MedicationManager from './components/MedicationManager';
+import SettingsView from './components/Settings';
 
-type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin' | 'medications';
+type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin' | 'medications' | 'settings';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -187,6 +188,7 @@ export default function App() {
       case 'diagnostic': return <ExpertDiagnostic profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
       case 'meal-analyzer': return <MealAnalyzer onNavigate={setActiveTab} lang={lang} />;
       case 'medications': return <MedicationManager lang={lang} />;
+      case 'settings': return <SettingsView user={user} profile={profile} lang={lang} />;
       case 'admin': return <AdminPanel profile={profile} />;
       default: return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
     }
@@ -199,6 +201,7 @@ export default function App() {
     { id: 'diagnostic', label: t('expert'), icon: Stethoscope },
     { id: 'medications', label: t('meds'), icon: Pill },
     { id: 'meal-analyzer', label: t('food'), icon: Utensils },
+    { id: 'settings', label: t('profile'), icon: Settings },
     ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' ? [{ id: 'admin', label: t('admin'), icon: Settings }] : []),
   ];
 
