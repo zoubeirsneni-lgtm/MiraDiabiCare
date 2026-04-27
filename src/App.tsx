@@ -202,7 +202,7 @@ export default function App() {
     { id: 'medications', label: t('meds'), icon: Pill },
     { id: 'meal-analyzer', label: t('food'), icon: Utensils },
     { id: 'settings', label: t('profile'), icon: Settings },
-    ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' ? [{ id: 'admin', label: t('admin'), icon: Settings }] : []),
+    ...(profile.isAdmin || user.email === 'zoubeirsneni@gmail.com' || user.email === 'snenizoubeir@gmail.com' ? [{ id: 'admin', label: t('admin'), icon: Settings }] : []),
   ];
 
   return (

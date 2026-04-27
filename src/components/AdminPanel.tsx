@@ -33,7 +33,7 @@ export default function AdminPanel({ profile }: AdminPanelProps) {
   const [error, setError] = useState<string | null>(null);
 
   const currentUserEmail = auth.currentUser?.email;
-  const isAuthorized = profile.isAdmin || currentUserEmail === 'zoubeirsneni@gmail.com';
+  const isAuthorized = profile.isAdmin || currentUserEmail === 'zoubeirsneni@gmail.com' || currentUserEmail === 'snenizoubeir@gmail.com';
 
   useEffect(() => {
     if (!isAuthorized) {
