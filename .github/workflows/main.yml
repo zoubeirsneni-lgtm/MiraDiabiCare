@@ -21,5 +21,5 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote remove destination || true
-          git remote add destination "https://x-access-token:${API_KEY_GITHUB}@github.com/snenizoubeir-sketch/miradiabicare.git"
+          git remote add destination "https://x-access-token:${API_KEY_GITHUB}@github.com/snenizoubeir-sketch/MiraDiabiCare.git"
           git push destination main --force
