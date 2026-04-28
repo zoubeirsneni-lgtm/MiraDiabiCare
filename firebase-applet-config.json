@@ -1,10 +1,8 @@
 {
-  "projectId": "gen-lang-client-0669084265",
-  "appId": "1:340625423426:web:e26fa9b9e38ed8f41081db",
-  "apiKey": "AIzaSyDG1mxmkxx4JiuzHbCAhtV7Q6zI3THT0RA",
-  "authDomain": "gen-lang-client-0669084265.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-14bd27e6-f2c6-4237-802f-2c90f65f4247",
-  "storageBucket": "gen-lang-client-0669084265.firebasestorage.app",
-  "messagingSenderId": "340625423426",
-  "measurementId": ""
+  "apiKey": "AIzaSyCO2DthYQbWhKld7mwf23US9ENZc4v1XvA",
+  "authDomain": "miradiabicare.firebaseapp.com",
+  "projectId": "miradiabicare",
+  "storageBucket": "miradiabicare.firebasestorage.app",
+  "messagingSenderId": "1060339178605",
+  "appId": "1:1060339178605:web:a63005b7ca63d87662b364"
 }
