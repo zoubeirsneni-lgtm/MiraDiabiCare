@@ -1,0 +1,24 @@
+name: Sync to Compte B
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code du Compte A
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Envoyer vers le Compte B
+        env:
+          API_KEY_GITHUB: ${{ secrets.TOKEN_COMPTE_B }}
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add destination "https://x-access-token:${API_KEY_GITHUB}@github.com/snenizoubeir-sketch/miradiabicare.git"
+          git push destination main --force
