@@ -34,6 +34,11 @@ export const translations: any = {
     cancel: "Annuler",
     identifying: "Identification...",
     analyzing: "Analyse en cours...",
+    lifestyle: "Régime & Vie",
+    nutrition: "Mon Plan Nutritionnel",
+    advice: "Conseils de Vie",
+    alternatives: "Alternatives",
+    loading_plan: "Génération de ton plan personnalisé...",
   },
   ar: {
     dashboard: "لوحة التحكم",
@@ -69,5 +74,10 @@ export const translations: any = {
     cancel: "إلغاء",
     identifying: "جاري التعرف...",
     analyzing: "جاري التحليل...",
+    lifestyle: "النظام والصحة",
+    nutrition: "نظامي الغذائي",
+    advice: "نصائح صحية",
+    alternatives: "البدائل",
+    loading_plan: "جاري إنشاء خطتك المخصصة...",
   }
 };

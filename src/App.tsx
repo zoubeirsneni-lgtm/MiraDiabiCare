@@ -26,7 +26,8 @@ import {
   Pill,
   Sun,
   Moon,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { translations } from './lib/translations';
@@ -39,8 +40,9 @@ import Onboarding from './components/Onboarding';
 import AdminPanel from './components/AdminPanel';
 import MedicationManager from './components/MedicationManager';
 import SettingsView from './components/Settings';
+import LifestylePanel from './components/LifestylePanel';
 
-type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin' | 'medications' | 'settings';
+type Tab = 'dashboard' | 'logs' | 'mira' | 'diagnostic' | 'meal-analyzer' | 'admin' | 'medications' | 'settings' | 'lifestyle';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -190,6 +192,7 @@ export default function App() {
       case 'medications': return <MedicationManager lang={lang} />;
       case 'settings': return <SettingsView user={user} profile={profile} lang={lang} />;
       case 'admin': return <AdminPanel profile={profile} />;
+      case 'lifestyle': return <LifestylePanel profile={profile} logs={logs} lang={lang} />;
       default: return <Dashboard profile={profile} logs={logs} onNavigate={setActiveTab} lang={lang} />;
     }
   };
@@ -199,6 +202,7 @@ export default function App() {
     { id: 'logs', label: t('add_log'), icon: Plus },
     { id: 'mira', label: t('mira'), icon: MessageSquare },
     { id: 'diagnostic', label: t('expert'), icon: Stethoscope },
+    { id: 'lifestyle', label: t('lifestyle'), icon: Sparkles },
     { id: 'medications', label: t('meds'), icon: Pill },
     { id: 'meal-analyzer', label: t('food'), icon: Utensils },
     { id: 'settings', label: t('profile'), icon: Settings },

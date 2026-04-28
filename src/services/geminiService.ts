@@ -120,3 +120,56 @@ export async function getExpertDiagnostic(profile: UserProfile, logs: HealthLog[
 
   return JSON.parse(response.text || '{}');
 }
+
+export async function getLifestylePlan(profile: UserProfile, logs: HealthLog[]) {
+  const contextText = `
+Profil: ${JSON.stringify(profile)}
+Historique Glycémique: ${logs.filter(l => l.type === 'glucose').slice(0, 15).map(l => `${l.value} (${l.timing})`).join(', ')}
+  `;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `Génère un plan "Régime & Vie" personnalisé pour cet utilisateur diabétique en Tunisie.
+${contextText}
+
+Le plan doit être strictement adapté à la cuisine tunisienne (ex: Couscous complet, Ojja, Salata Mechouia, pain Tabouna modéré).
+Donne des conseils de vie basés sur ses glycémies récentes.
+Utilise un ton chaleureux de "Mira" avec quelques mots de Derja (Asslema, Yaatik esaha).`,
+    config: {
+      systemInstruction: "Tu es Mira, experte en nutrition tunisienne et diabète. Tu dois retourner un JSON structuré en Français.",
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          nutrition: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                meal: { type: Type.STRING, description: "Petit-déjeuner, Déjeuner, Dîner, ou Collation" },
+                suggestion: { type: Type.STRING, description: "Description du plat tunisien sain" },
+                alternative: { type: Type.STRING, description: "Alternative si l'utilisateur n'aime pas le plat" },
+                why: { type: Type.STRING, description: "Pourquoi ce choix pour son diabète" }
+              }
+            }
+          },
+          lifestyle: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                category: { type: Type.STRING, description: "Activité, Sommeil, Stress" },
+                tip: { type: Type.STRING },
+                impact: { type: Type.STRING, description: "Impact sur la glycémie" }
+              }
+            }
+          },
+          intro: { type: Type.STRING, description: "Message d'accueil chaleureux de Mira" }
+        },
+        required: ["nutrition", "lifestyle", "intro"]
+      }
+    }
+  });
+
+  return JSON.parse(response.text || '{}');
+}
